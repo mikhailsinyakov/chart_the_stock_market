@@ -26,3 +26,5 @@ const ajaxFunctions = {
       xmlhttp.send();
    }
 };
+
+export default ajaxFunctions;
