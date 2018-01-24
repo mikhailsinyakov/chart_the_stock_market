@@ -1,17 +1,17 @@
 {
-  "name": "nightlife_coordination",
+  "name": "chart_the_stock_market",
   "version": "1.0.1",
-  "description": "App for searching bars in your area",
+  "description": "View a graph displaying the recent trend lines for for each added stock",
   "main": "server.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mikhailsinyakov/nightlife_coordination"
+    "url": "https://github.com/mikhailsinyakov/chart_the_stock_market"
   },
-  "homepage": "https://nightlife-coordination-mikhailsinyakov.c9users.io",
+  "homepage": "",
   "keywords": [
-    "nightlife",
-    "bars",
-    "search"
+    "chart",
+    "stock",
+    "market"
   ],
   "scripts": {
     "start": "node server.js"
@@ -23,8 +23,6 @@
     "express": "^4.12.4",
     "express-session": "^1.11.3",
     "mongoose": "^4.1.0",
-    "nodemon": "^1.14.11",
-    "passport": "^0.3.0",
-    "passport-github": "^1.0.0"
+    "nodemon": "^1.14.11"
   }
 }

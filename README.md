@@ -1,12 +1,9 @@
-# Nightlife coordination app
+# Chart the stock market app
 
-You can view all bars in your area
-
-As an authenticated user you can: 
-    - add yourself to a bar to indicate you are going there tonight
-    - remove yourself from a bar if you no longer want to go there
-    
-When you login you should not have to search again
+You can view a graph displaying the recent trend lines for each added stock
+You can add new stocks by their symbol name
+You can remove stocks
+You can see changes in real-time when any other user adds or removes a stock
 
 
 Created by using [Clementine.js](https://github.com/johnstonbl01/clementinejs-fcc.git) boilerplate 
