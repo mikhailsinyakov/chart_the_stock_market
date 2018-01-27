@@ -1,8 +1,9 @@
 'use strict';
 
-const AlphaVantageAPI = require('../controllers/alphaVantageAPI.server.js');
+const getStockHistory = require('../common/getTradeLineOfStock.server.js');
+const StocksHandler = require('../controllers/stocksHandler.server.js');
 const path = process.cwd();
-const alphaVantageAPI = new AlphaVantageAPI();
+const stocksHandler = new StocksHandler();
 
 module.exports = (app) => {
 
@@ -10,7 +11,10 @@ module.exports = (app) => {
 		.get((req, res) => {
 			res.sendFile(path + '/public/index.html');
 		});
+		
+	app.route('/api/getStocks')
+		.get(stocksHandler.getStocks);
 	
-	app.route('/api/stocks/:symbol')
-		.get(alphaVantageAPI.getStockHistory);
+	app.route('/api/getTradeLineOfStock/:symbol')
+		.get(getStockHistory);
 };
