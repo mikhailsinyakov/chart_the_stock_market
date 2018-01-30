@@ -4,7 +4,7 @@ const request = require('request');
 const query = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY";
 const apiKey = `&apikey=${process.env.ALFA_VANTAGE_API_KEY}`;
 
-function getStockHistory(req, res) {
+function getStockData(req, res) {
     const symbol = `&symbol=${req.params.symbol}`;
     const url = query + symbol + apiKey;
     request(url, (err, response, body) => {
@@ -22,4 +22,4 @@ function getStockHistory(req, res) {
     });
 }
 
-module.exports = getStockHistory;
+module.exports = getStockData;

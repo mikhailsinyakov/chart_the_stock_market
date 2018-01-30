@@ -1,6 +1,6 @@
 'use strict';
 
-const getStockHistory = require('../common/getTradeLineOfStock.server.js');
+const getStockData = require('../common/getStockData.server.js');
 const StocksHandler = require('../controllers/stocksHandler.server.js');
 const path = process.cwd();
 const stocksHandler = new StocksHandler();
@@ -14,7 +14,13 @@ module.exports = (app) => {
 		
 	app.route('/api/getStocks')
 		.get(stocksHandler.getStocks);
+		
+	app.route('/api/addStock/:symbol')
+		.post(stocksHandler.addStock);
+		
+	app.route('/api/removeStock/:symbol')
+		.delete(stocksHandler.removeStock);
 	
-	app.route('/api/getTradeLineOfStock/:symbol')
-		.get(getStockHistory);
+	app.route('/api/getStockData/:symbol')
+		.get(getStockData);
 };

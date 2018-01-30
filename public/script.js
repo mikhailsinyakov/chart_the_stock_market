@@ -1897,7 +1897,7 @@
             try {
                 oldLocale = globalLocale._abbr;
                 var aliasedRequire = require;
-                __webpack_require__(326)("./" + name);
+                __webpack_require__(325)("./" + name);
                 getSetGlobalLocale(oldLocale);
             } catch (e) {}
         }
@@ -6315,7 +6315,7 @@
         if (!locales[name] && typeof module !== 'undefined' && module && module.exports) {
             try {
                 oldLocale = globalLocale._abbr;
-                __webpack_require__(308)("./" + name);
+                __webpack_require__(307)("./" + name);
                 // because defineLocale currently also sets the global locale, we
                 // want to undo that for lazy loaded locales
                 getSetGlobalLocale(oldLocale);
@@ -8857,9 +8857,9 @@
 
 
 module.exports = __webpack_require__(12);
-module.exports.easing = __webpack_require__(280);
-module.exports.canvas = __webpack_require__(281);
-module.exports.options = __webpack_require__(282);
+module.exports.easing = __webpack_require__(279);
+module.exports.canvas = __webpack_require__(280);
+module.exports.options = __webpack_require__(281);
 
 /***/ }),
 /* 3 */
@@ -9212,10 +9212,10 @@ process.umask = function () {
 
 
 module.exports = {};
-module.exports.Arc = __webpack_require__(288);
-module.exports.Line = __webpack_require__(289);
-module.exports.Point = __webpack_require__(290);
-module.exports.Rectangle = __webpack_require__(291);
+module.exports.Arc = __webpack_require__(287);
+module.exports.Line = __webpack_require__(288);
+module.exports.Point = __webpack_require__(289);
+module.exports.Rectangle = __webpack_require__(290);
 
 /***/ }),
 /* 8 */
@@ -10478,8 +10478,8 @@ const ajaxFunctions = {
 /***/ (function(module, exports, __webpack_require__) {
 
 /* MIT license */
-var convert = __webpack_require__(284);
-var string = __webpack_require__(286);
+var convert = __webpack_require__(283);
+var string = __webpack_require__(285);
 
 var Color = function (obj) {
 	if (obj instanceof Color) {
@@ -11301,8 +11301,8 @@ module.exports = {
 
 
 var helpers = __webpack_require__(2);
-var basic = __webpack_require__(292);
-var dom = __webpack_require__(293);
+var basic = __webpack_require__(291);
+var dom = __webpack_require__(292);
 
 // @TODO Make possible to select another platform at build time.
 var implementation = dom._enabled ? dom : basic;
@@ -32981,10 +32981,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_dom__ = __webpack_require__(265);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_dom___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_react_dom__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__controllers_stocksController_client_js__ = __webpack_require__(274);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_Header_js__ = __webpack_require__(275);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__components_Chart_js__ = __webpack_require__(276);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__components_Stocks_js__ = __webpack_require__(330);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__components_Footer_js__ = __webpack_require__(331);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__common_getStockData_client_js__ = __webpack_require__(275);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__common_drawChart_js__ = __webpack_require__(276);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__components_Header_js__ = __webpack_require__(326);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__components_Chart_js__ = __webpack_require__(327);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__components_Stocks_js__ = __webpack_require__(330);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__components_Footer_js__ = __webpack_require__(332);
+
+
 
 
 
@@ -32994,6 +32998,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 const stocksController = new __WEBPACK_IMPORTED_MODULE_2__controllers_stocksController_client_js__["a" /* default */]();
+const drawChart = new __WEBPACK_IMPORTED_MODULE_4__common_drawChart_js__["a" /* default */]();
 
 const app = document.querySelector("#app");
 
@@ -33001,37 +33006,115 @@ class App extends __WEBPACK_IMPORTED_MODULE_0_react___default.a.Component {
     constructor(props) {
         super(props);
         this.state = {
-            stocks: []
+            stocks: [],
+            period: 90
         };
 
+        this.stocksData = [];
+        this.stockDataBuffer = {};
+
         this.updateStocks = this.updateStocks.bind(this);
+        this.updateStocksDataAndChart = this.updateStocksDataAndChart.bind(this);
+        this.addStock = this.addStock.bind(this);
+        this.removeStock = this.removeStock.bind(this);
+        this.changePeriod = this.changePeriod.bind(this);
+        this.getStocksChanges = this.getStocksChanges.bind(this);
+        this.isStocksUpdated = this.isStocksUpdated.bind(this);
     }
 
-    updateStocks(stocks) {
-        this.setState({ stocks });
+    updateStocks() {
+        stocksController.getStocks().then(stocks => this.setState({ stocks })).catch(err => console.log(err));
+    }
+
+    addStock(symbol) {
+        Object(__WEBPACK_IMPORTED_MODULE_3__common_getStockData_client_js__["a" /* default */])(symbol).then(stockData => {
+            this.stockDataBuffer = stockData;
+            stocksController.addStock(symbol);
+        }).then(this.updateStocks).catch(err => console.log(err));
+    }
+
+    removeStock(symbol) {
+        stocksController.removeStock(symbol).then(this.updateStocks).catch(err => console.log(err));
+    }
+
+    changePeriod(period) {
+        this.setState({ period });
+    }
+
+    isStocksUpdated(prevStocks, currStocks) {
+        if (prevStocks.length != currStocks.length) return true;
+        const matchedStocks = prevStocks.filter(val1 => {
+            return currStocks.filter(val2 => val1 == val2).length;
+        });
+        if (matchedStocks.length != prevStocks.length) return true;
+        return false;
+    }
+
+    updateStocksDataAndChart(prevStocks, currStocks) {
+        const { added: addedStocks, removed: removedStocks } = this.getStocksChanges(prevStocks, currStocks);
+
+        addedStocks.forEach(symbol => {
+            console.log(this.stockDataBuffer);
+            if (this.stockDataBuffer.symbol == symbol) {
+                const stockData = this.stockDataBuffer;
+                this.stocksData.push(stockData);
+                drawChart.addDataset(stockData, this.state.period);
+                this.stockDataBuffer = {};
+            } else {
+                Object(__WEBPACK_IMPORTED_MODULE_3__common_getStockData_client_js__["a" /* default */])(symbol).then(stockData => {
+                    this.stocksData.push(stockData);
+                    drawChart.addDataset(stockData, this.state.period);
+                }).catch(err => console.log(err));
+            }
+        });
+
+        removedStocks.forEach(symbol => {
+            this.stocksData = this.stocksData.filter(val => val.symbol != symbol);
+            drawChart.removeDataset(symbol);
+        });
+    }
+
+    getStocksChanges(prevStocks, currStocks) {
+        let added = currStocks.filter(val1 => {
+            return !prevStocks.filter(val2 => val1 == val2).length;
+        });
+
+        let removed = prevStocks.filter(val1 => {
+            return !currStocks.filter(val2 => val1 == val2).length;
+        });
+
+        return { added, removed };
     }
 
     componentDidMount() {
-        stocksController.getStocks(this.updateStocks);
+        this.updateStocks();
+        drawChart.initDrawing();
     }
 
-    componentDidUpdate() {
-        //console.log(this.state);
+    componentDidUpdate(prevProps, prevState) {
+        const prevStocks = prevState.stocks;
+        const currStocks = this.state.stocks;
+        const isStocksUpdated = this.isStocksUpdated(prevStocks, currStocks);
+        const isPeriodUpdated = prevState.period != this.state.period;
+        if (isStocksUpdated) {
+            this.updateStocksDataAndChart(prevStocks, currStocks);
+        }
+
+        if (isPeriodUpdated) {
+            drawChart.redrawChart(this.stocksData, this.state.period);
+        }
     }
 
     render() {
         return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'div',
             null,
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_3__components_Header_js__["a" /* default */], null),
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_4__components_Chart_js__["a" /* default */], { stocks: this.state.stocks }),
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-                'button',
-                { onClick: () => stocksController.getStocks(this.updateStocks) },
-                'Update stocks'
-            ),
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_5__components_Stocks_js__["a" /* default */], { stocks: this.state.stocks }),
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_6__components_Footer_js__["a" /* default */], null)
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_5__components_Header_js__["a" /* default */], null),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_6__components_Chart_js__["a" /* default */], { stocks: this.state.stocks, period: this.state.period,
+                changePeriod: this.changePeriod }),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_7__components_Stocks_js__["a" /* default */], { stocks: this.state.stocks, addStock: this.addStock,
+                removeStock: this.removeStock }),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_8__components_Footer_js__["a" /* default */], null)
         );
     }
 }
@@ -39641,13 +39724,35 @@ module.exports = camelize;
 
 function StocksController() {
 
-    this.getStocks = callback => {
+    this.getStocks = () => {
         const url = "/api/getStocks";
-        __WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ready(__WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ajaxRequest("GET", url, (status, response) => {
-            if (status != 200) return console.log(status);
-            response = JSON.parse(response).map(val => val.name);
-            return callback(response);
-        }));
+        return new Promise((resolve, reject) => {
+            __WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ready(__WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ajaxRequest("GET", url, (status, response) => {
+                if (status != 200) return reject(status);
+                response = JSON.parse(response).map(val => val.name);
+                return resolve(response);
+            }));
+        });
+    };
+
+    this.addStock = symbol => {
+        const url = `/api/addStock/${symbol}`;
+        return new Promise((resolve, reject) => {
+            __WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ready(__WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ajaxRequest("POST", url, status => {
+                if (status != 200) return reject(status);
+                return resolve(status);
+            }));
+        });
+    };
+
+    this.removeStock = symbol => {
+        const url = `/api/removeStock/${symbol}`;
+        return new Promise((resolve, reject) => {
+            __WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ready(__WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ajaxRequest("DELETE", url, status => {
+                if (status != 200) return reject(status);
+                return resolve(status);
+            }));
+        });
     };
 }
 
@@ -39658,165 +39763,47 @@ function StocksController() {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__ = __webpack_require__(22);
 
 
-function Header(props) {
-    return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-        'header',
-        null,
-        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-            'h1',
-            null,
-            'Chart the stock market'
-        )
-    );
+function getStockData(symbol) {
+    const url = `/api/getStockData/${symbol}`;
+    return new Promise((resolve, reject) => {
+        __WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ready(__WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ajaxRequest("GET", url, (status, response) => {
+            let error;
+            if (status != 200) error = `Error ${status}`;
+            if (!JSON.parse(response).length) error = 'Not found';
+            if (error) return reject(error);
+            resolve({
+                symbol,
+                data: JSON.parse(response)
+            });
+        }));
+    });
 }
 
-/* harmony default export */ __webpack_exports__["a"] = (Header);
+/* harmony default export */ __webpack_exports__["a"] = (getStockData);
 
 /***/ }),
 /* 276 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__common_drawChart_js__ = __webpack_require__(277);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_getTradeLineOfStock_client_js__ = __webpack_require__(327);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Controllers_js__ = __webpack_require__(328);
-
-
-
-
-
-class Chart extends __WEBPACK_IMPORTED_MODULE_0_react___default.a.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            stocksTradeLines: [],
-            period: 90
-        };
-
-        this.changePeriod = this.changePeriod.bind(this);
-        this.fillInitStocksTradeLines = this.fillInitStocksTradeLines.bind(this);
-        this.addStockTradeLine = this.addStockTradeLine.bind(this);
-        this.removeStockTradeLine = this.removeStockTradeLine.bind(this);
-        //this.drawCurrentStocks = this.drawCurrentStocks.bind(this);
-    }
-
-    fillInitStocksTradeLines() {
-        const stocks = this.props.stocks;
-        if (!stocks.length) return;
-        const stocksPromises = stocks.map(val => Object(__WEBPACK_IMPORTED_MODULE_2__common_getTradeLineOfStock_client_js__["a" /* default */])(val));
-
-        Promise.all(stocksPromises).then(stocksTradeLines => this.setState({ stocksTradeLines })).catch(error => console.log(error));
-    }
-
-    addStockTradeLine() {
-        const stocks = this.props.stocks;
-        const prevStocks = this.state.stocksTradeLines.map(val => val.symbol);
-        const newStock = stocks.filter(val1 => {
-            const matched = prevStocks.filter(val2 => val1 == val2);
-            if (matched.length) return false;
-            return true;
-        })[0];
-
-        Object(__WEBPACK_IMPORTED_MODULE_2__common_getTradeLineOfStock_client_js__["a" /* default */])(newStock).then(stockInfo => {
-            const stocksTradeLines = this.state.stocksTradeLines;
-            stocksTradeLines.push(stockInfo);
-            this.setState({ stocksTradeLines });
-        }).catch(error => console.log(error));
-    }
-
-    removeStockTradeLine() {
-        const stocks = this.props.stocks;
-        const prevStocks = this.state.stocksTradeLines.map(val => val.symbol);
-        const removedStock = prevStocks.filter(val1 => {
-            const matched = stocks.filter(val2 => val1 == val2);
-            if (matched.length) return false;
-            return true;
-        })[0];
-        const stocksTradeLines = this.state.stocksTradeLines.filter(val => val.symbol != removedStock);
-        this.setState({ stocksTradeLines });
-    }
-
-    changePeriod(period) {
-        this.setState({ period });
-    }
-
-    componentDidMount() {
-        //console.log("mount", this.props.stocks)
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        console.log("stocks", this.props.stocks);
-        console.log("stocksTradeLines", this.state.stocksTradeLines);
-        if (this.state.updates > 9) return;
-
-        // Check workable
-        if (!prevProps.stocks.length) {
-            if (this.props.stocks.length == 1) {
-                return this.addStockTradeLine();
-            }
-            return this.fillInitStocksTradeLines();
-        }
-
-        if (prevProps.stocks.length < this.props.stocks.length) {
-            return this.addStockTradeLine();
-        }
-
-        if (prevProps.stocks.length > this.props.stocks.length) {
-            return this.removeStockTradeLine();
-        }
-    }
-
-    render() {
-        return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-            'div',
-            { className: 'chart' },
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_3__Controllers_js__["a" /* default */], { period: this.state.period,
-                changePeriod: this.changePeriod }),
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('canvas', { id: 'stockChart', width: '1000', height: '400' })
-        );
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Chart);
-
-/***/ }),
-/* 277 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_chart_js__ = __webpack_require__(278);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_chart_js__ = __webpack_require__(277);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_chart_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_chart_js__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_moment__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_moment___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_moment__);
 
 
 
-function drawChart(stocksHistory) {
-    const datasets = stocksHistory.map((val, i) => {
-        return {
-            data: val.history.map(val => val.closePrice).reverse(),
-            label: val.symbol,
-            borderColor: `rgb(${100 + i * 30}, ${50 + i * 60}, ${150 + i * 50})`,
-            fill: false
-        };
-    });
-    const labels = stocksHistory[0].history.map(val => __WEBPACK_IMPORTED_MODULE_1_moment___default()(val.date).format('D.M.YYYY')).reverse();
+function DrawChart() {
+    let stockChart = null;
+    const colors = ["rgb(0,0,0)", "rgb(255,255,255)", "rgb(255,0,0)", "rgb(0,255,0)", "rgb(0,0,255)", "rgb(255,255,0)", "rgb(0,255,255)", "rgb(255,0,255)", "rgb(192,192,192)", "rgb(128,128,128)", "rgb(128,0,0)", "rgb(128,128,0)", "rgb(0,128,0)", "rgb(128,0,128)", "rgb(0,128,128)", "rgb(0,0,128)"];
 
-    const ctx = document.querySelector("#stockChart").getContext("2d");
+    this.initDrawing = () => {
+        const ctx = document.querySelector("#stockChart").getContext("2d");
 
-    const myChart = new __WEBPACK_IMPORTED_MODULE_0_chart_js___default.a(ctx, {
-        type: "line",
-        data: {
-            datasets,
-            labels
-        },
-        options: {
+        const options = {
             legend: {
                 display: true,
                 position: "top",
@@ -39825,24 +39812,74 @@ function drawChart(stocksHistory) {
                     fontColor: "black"
                 }
             }
+        };
+        stockChart = new __WEBPACK_IMPORTED_MODULE_0_chart_js___default.a(ctx, { type: "line", options });
+    };
+
+    this.addDataset = (stockData, period) => {
+        stockData = {
+            symbol: stockData.symbol,
+            data: stockData.data.filter((val, i) => i < period)
+        };
+
+        if (!stockChart.data.datasets.length) {
+            const labels = stockData.data.map(val => __WEBPACK_IMPORTED_MODULE_1_moment___default()(val.date).format('D.M.YYYY')).reverse();
+            stockChart.data.labels = labels;
         }
-    });
+
+        const index = stockChart.data.datasets.length;
+        const newDataset = {
+            data: stockData.data.map(val => +val.closePrice).reverse(),
+            label: stockData.symbol,
+            borderColor: colors[index],
+            fill: false
+        };
+
+        stockChart.data.datasets.push(newDataset);
+        stockChart.update();
+    };
+
+    this.removeDataset = symbol => {
+        stockChart.data.datasets = stockChart.data.datasets.filter(val => val.label != symbol);
+        stockChart.update();
+    };
+
+    this.redrawChart = (stocksData, period) => {
+        stocksData = stocksData.map(stockData => {
+            return {
+                symbol: stockData.symbol,
+                data: stockData.data.filter((val, i) => i < period)
+            };
+        });
+        const labels = stocksData[0].data.map(val => __WEBPACK_IMPORTED_MODULE_1_moment___default()(val.date).format('D.M.YYYY')).reverse();
+        const datasets = stocksData.map((stockData, index) => {
+            return {
+                data: stockData.data.map(val => +val.closePrice).reverse(),
+                label: stockData.symbol,
+                borderColor: colors[index],
+                fill: false
+            };
+        });
+        stockChart.data.labels = labels;
+        stockChart.data.datasets = datasets;
+        stockChart.update();
+    };
 }
-/* unused harmony default export */ var _unused_webpack_default_export = (drawChart);
+/* harmony default export */ __webpack_exports__["a"] = (DrawChart);
 
 /***/ }),
-/* 278 */
+/* 277 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * @namespace Chart
  */
-var Chart = __webpack_require__(279)();
+var Chart = __webpack_require__(278)();
 
 Chart.helpers = __webpack_require__(2);
 
 // @todo dispatch these helpers into appropriated helpers/helpers.* file and write unit tests!
-__webpack_require__(283)(Chart);
+__webpack_require__(282)(Chart);
 
 Chart.defaults = __webpack_require__(3);
 Chart.Element = __webpack_require__(4);
@@ -39850,6 +39887,7 @@ Chart.elements = __webpack_require__(7);
 Chart.Interaction = __webpack_require__(24);
 Chart.platform = __webpack_require__(25);
 
+__webpack_require__(293)(Chart);
 __webpack_require__(294)(Chart);
 __webpack_require__(295)(Chart);
 __webpack_require__(296)(Chart);
@@ -39857,37 +39895,36 @@ __webpack_require__(297)(Chart);
 __webpack_require__(298)(Chart);
 __webpack_require__(299)(Chart);
 __webpack_require__(300)(Chart);
-__webpack_require__(301)(Chart);
 
+__webpack_require__(301)(Chart);
 __webpack_require__(302)(Chart);
 __webpack_require__(303)(Chart);
 __webpack_require__(304)(Chart);
 __webpack_require__(305)(Chart);
 __webpack_require__(306)(Chart);
-__webpack_require__(307)(Chart);
 
 // Controllers must be loaded after elements
 // See Chart.core.datasetController.dataElementType
+__webpack_require__(308)(Chart);
 __webpack_require__(309)(Chart);
 __webpack_require__(310)(Chart);
 __webpack_require__(311)(Chart);
 __webpack_require__(312)(Chart);
 __webpack_require__(313)(Chart);
 __webpack_require__(314)(Chart);
-__webpack_require__(315)(Chart);
 
+__webpack_require__(315)(Chart);
 __webpack_require__(316)(Chart);
 __webpack_require__(317)(Chart);
 __webpack_require__(318)(Chart);
 __webpack_require__(319)(Chart);
 __webpack_require__(320)(Chart);
 __webpack_require__(321)(Chart);
-__webpack_require__(322)(Chart);
 
 // Loading built-it plugins
 var plugins = [];
 
-plugins.push(__webpack_require__(323)(Chart), __webpack_require__(324)(Chart), __webpack_require__(325)(Chart));
+plugins.push(__webpack_require__(322)(Chart), __webpack_require__(323)(Chart), __webpack_require__(324)(Chart));
 
 Chart.plugins.register(plugins);
 
@@ -39910,7 +39947,7 @@ if (typeof window !== 'undefined') {
 Chart.canvasHelpers = Chart.helpers.canvas;
 
 /***/ }),
-/* 279 */
+/* 278 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39965,7 +40002,7 @@ module.exports = function () {
 };
 
 /***/ }),
-/* 280 */
+/* 279 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40221,7 +40258,7 @@ module.exports = {
 helpers.easingEffects = effects;
 
 /***/ }),
-/* 281 */
+/* 280 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40435,7 +40472,7 @@ helpers.drawRoundedRectangle = function (ctx) {
 };
 
 /***/ }),
-/* 282 */
+/* 281 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40537,7 +40574,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 283 */
+/* 282 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -41125,10 +41162,10 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 284 */
+/* 283 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var conversions = __webpack_require__(285);
+var conversions = __webpack_require__(284);
 
 var convert = function () {
   return new Converter();
@@ -41217,7 +41254,7 @@ Converter.prototype.getValues = function (space) {
 module.exports = convert;
 
 /***/ }),
-/* 285 */
+/* 284 */
 /***/ (function(module, exports) {
 
 /* MIT license */
@@ -41917,11 +41954,11 @@ for (var key in cssKeywords) {
 }
 
 /***/ }),
-/* 286 */
+/* 285 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* MIT license */
-var colorNames = __webpack_require__(287);
+var colorNames = __webpack_require__(286);
 
 module.exports = {
    getRgba: getRgba,
@@ -42131,7 +42168,7 @@ for (var name in colorNames) {
 }
 
 /***/ }),
-/* 287 */
+/* 286 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42289,7 +42326,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 288 */
+/* 287 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42402,7 +42439,7 @@ module.exports = Element.extend({
 });
 
 /***/ }),
-/* 289 */
+/* 288 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42499,7 +42536,7 @@ module.exports = Element.extend({
 });
 
 /***/ }),
-/* 290 */
+/* 289 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42611,7 +42648,7 @@ module.exports = Element.extend({
 });
 
 /***/ }),
-/* 291 */
+/* 290 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42829,7 +42866,7 @@ module.exports = Element.extend({
 });
 
 /***/ }),
-/* 292 */
+/* 291 */
 /***/ (function(module, exports) {
 
 /**
@@ -42849,7 +42886,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 293 */
+/* 292 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43279,7 +43316,7 @@ helpers.addEvent = addEventListener;
 helpers.removeEvent = removeEventListener;
 
 /***/ }),
-/* 294 */
+/* 293 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43680,7 +43717,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 295 */
+/* 294 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43857,7 +43894,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 296 */
+/* 295 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44761,7 +44798,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 297 */
+/* 296 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45097,7 +45134,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 298 */
+/* 297 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45522,7 +45559,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 299 */
+/* 298 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45573,7 +45610,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 300 */
+/* 299 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46495,7 +46532,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 301 */
+/* 300 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47448,7 +47485,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 302 */
+/* 301 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47586,7 +47623,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 303 */
+/* 302 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47724,7 +47761,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 304 */
+/* 303 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47916,7 +47953,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 305 */
+/* 304 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48161,7 +48198,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 306 */
+/* 305 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48683,7 +48720,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 307 */
+/* 306 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49434,7 +49471,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 308 */
+/* 307 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -49683,10 +49720,10 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 308;
+webpackContext.id = 307;
 
 /***/ }),
-/* 309 */
+/* 308 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50105,7 +50142,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 310 */
+/* 309 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50271,7 +50308,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 311 */
+/* 310 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50576,7 +50613,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 312 */
+/* 311 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50910,7 +50947,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 313 */
+/* 312 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51138,7 +51175,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 314 */
+/* 313 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51307,7 +51344,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 315 */
+/* 314 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51354,7 +51391,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 316 */
+/* 315 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51370,7 +51407,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 317 */
+/* 316 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51385,7 +51422,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 318 */
+/* 317 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51401,7 +51438,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 319 */
+/* 318 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51417,7 +51454,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 320 */
+/* 319 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51433,7 +51470,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 321 */
+/* 320 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51449,7 +51486,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 322 */
+/* 321 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51463,7 +51500,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 323 */
+/* 322 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51790,7 +51827,7 @@ module.exports = function () {
 };
 
 /***/ }),
-/* 324 */
+/* 323 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52359,7 +52396,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 325 */
+/* 324 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52606,7 +52643,7 @@ module.exports = function (Chart) {
 };
 
 /***/ }),
-/* 326 */
+/* 325 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -52863,32 +52900,53 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 326;
+webpackContext.id = 325;
+
+/***/ }),
+/* 326 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+
+
+function Header(props) {
+    return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        'header',
+        null,
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'h1',
+            null,
+            'Chart the stock market'
+        )
+    );
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Header);
 
 /***/ }),
 /* 327 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Controllers_js__ = __webpack_require__(328);
 
 
-function getTradeLineOfStock(symbol) {
-    return new Promise((resolve, reject) => {
-        const url = `/api/getTradeLineOfStock/${symbol}`;
-        __WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ready(__WEBPACK_IMPORTED_MODULE_0__common_ajax_functions_js__["a" /* default */].ajaxRequest("GET", url, (status, response) => {
-            if (status != 200) reject(`Error ${status}`);else {
-                const stockInfo = {
-                    symbol,
-                    tradeLines: JSON.parse(response)
-                };
-                resolve(stockInfo);
-            }
-        }));
-    });
+
+function Chart(props) {
+    return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        'div',
+        { className: 'chart' },
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1__Controllers_js__["a" /* default */], { period: props.period,
+            changePeriod: props.changePeriod }),
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('canvas', { id: 'stockChart', width: '1000', height: '400' })
+    );
 }
 
-/* harmony default export */ __webpack_exports__["a"] = (getTradeLineOfStock);
+/* harmony default export */ __webpack_exports__["a"] = (Chart);
 
 /***/ }),
 /* 328 */
@@ -52962,16 +53020,91 @@ function ControllerButton(props) {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__addStock_js__ = __webpack_require__(331);
+
 
 
 function Stocks(props) {
-    return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement("div", { className: "stocks" });
+    const spanStyle = {
+        cursor: "pointer",
+        marginLeft: "10px",
+        fontSize: "10px"
+    };
+
+    const stocksList = props.stocks.map((val, i) => {
+        return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'div',
+            { key: i, className: 'stockItem' },
+            val,
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'span',
+                { style: spanStyle, onClick: () => props.removeStock(val) },
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                    'b',
+                    null,
+                    'X'
+                )
+            )
+        );
+    });
+
+    return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        'div',
+        { className: 'stocks' },
+        stocksList,
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1__addStock_js__["a" /* default */], { addStock: props.addStock })
+    );
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (Stocks);
 
 /***/ }),
 /* 331 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+
+
+class AddStock extends __WEBPACK_IMPORTED_MODULE_0_react___default.a.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            value: ''
+        };
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleChange(e) {
+        const value = e.target.value.toUpperCase();
+        this.setState({ value });
+    }
+
+    handleSubmit() {
+        this.props.addStock(this.state.value);
+        this.setState({ value: '' });
+    }
+
+    render() {
+        return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'form',
+            null,
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('input', { onChange: this.handleChange, value: this.state.value }),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'button',
+                { type: 'button', onClick: this.handleSubmit },
+                'Add a stock'
+            )
+        );
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (AddStock);
+
+/***/ }),
+/* 332 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
