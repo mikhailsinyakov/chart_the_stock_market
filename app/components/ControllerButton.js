@@ -5,7 +5,7 @@ function ControllerButton(props) {
     function periodToString(period) {
         if (period == 90) return "3 months";
         if (period == 30) return "1 month";
-        if (period == 7) return "1 week";
+        if (period == 14) return "2 weeks";
     }
     
     if (props.currPeriod == props.newPeriod) {

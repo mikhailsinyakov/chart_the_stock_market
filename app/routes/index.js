@@ -5,7 +5,7 @@ const StocksHandler = require('../controllers/stocksHandler.server.js');
 const path = process.cwd();
 const stocksHandler = new StocksHandler();
 
-module.exports = (app) => {
+module.exports = app => {
 
 	app.route('/')
 		.get((req, res) => {

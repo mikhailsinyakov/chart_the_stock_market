@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import io from 'socket.io-client';
 import StocksController from '../controllers/stocksController.client.js';
 import getStockData from '../common/getStockData.client.js';
 import DrawChart from '../common/drawChart.js';
@@ -10,6 +11,8 @@ import Footer from '../components/Footer.js';
 
 const stocksController = new StocksController();
 const drawChart = new DrawChart();
+
+let socket;
 
 const app = document.querySelector("#app");
 
@@ -39,17 +42,20 @@ class App extends React.Component {
     }
     
     addStock(symbol) {
+        const isAlreadyExist = !!this.state.stocks.filter(val => val == symbol).length;
+        const greaterThanMaxLength = this.state.stocks.length > 14;
+        if (isAlreadyExist || greaterThanMaxLength) return;
         getStockData(symbol).then(stockData => {
                                 this.stockDataBuffer = stockData;
                                 stocksController.addStock(symbol);
                             })
-                            .then(this.updateStocks)
+                            .then(() => socket.emit('changedStocks', true))
                             .catch(err => console.log(err));
     }
     
     removeStock(symbol) {
-        stocksController.removeStock(symbol).then(this.updateStocks)
-                                         .catch(err => console.log(err));
+        stocksController.removeStock(symbol).then(() => socket.emit('changedStocks', true))
+                                            .catch(err => console.log(err));
     }
     
     changePeriod(period) {
@@ -69,7 +75,6 @@ class App extends React.Component {
         const {added: addedStocks, removed: removedStocks} = this.getStocksChanges(prevStocks, currStocks);
             
             addedStocks.forEach(symbol => {
-                console.log(this.stockDataBuffer)
                 if (this.stockDataBuffer.symbol == symbol) {
                     const stockData = this.stockDataBuffer;
                     this.stocksData.push(stockData);
@@ -104,6 +109,8 @@ class App extends React.Component {
     }
     
     componentDidMount() {
+        socket = io.connect();
+        socket.on('updateStocks', this.updateStocks);
         this.updateStocks();
         drawChart.initDrawing();
     }

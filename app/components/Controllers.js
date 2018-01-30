@@ -10,7 +10,7 @@ function Controllers(props) {
                               changePeriod={props.changePeriod} />
             <ControllerButton currPeriod={props.period} newPeriod={30} 
                               changePeriod={props.changePeriod}/>
-            <ControllerButton currPeriod={props.period} newPeriod={7}
+            <ControllerButton currPeriod={props.period} newPeriod={14}
                               changePeriod={props.changePeriod} />
         </div>
     );

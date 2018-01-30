@@ -4,8 +4,10 @@ const express = require('express');
 const routes = require('./app/routes/index.js');
 const mongoose = require('mongoose');
 const session = require('express-session');
+const socket = require('./app/sockets/socket.server.js');
 
 const app = express();
+
 require('dotenv').load();
 
 mongoose.connect(process.env.MONGO_URI, {useMongoClient: true});
@@ -24,6 +26,8 @@ app.use(session({
 routes(app);
 
 const port = process.env.PORT || 8080;
-app.listen(port,  () => {
+const server = app.listen(port,  () => {
 	console.log(`Node.js listening on port ${port} ...`);
 });
+
+socket(server);

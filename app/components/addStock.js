@@ -8,11 +8,20 @@ class AddStock extends React.Component {
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
     }
     
     handleChange(e) {
         const value = e.target.value.toUpperCase();
         this.setState({value});
+    }
+    
+    handleKeyPress(e) {
+        if (e.key == "Enter") {
+            e.preventDefault();
+            this.props.addStock(this.state.value);
+            this.setState({value: ''});
+        }
     }
     
     handleSubmit() {
@@ -23,7 +32,7 @@ class AddStock extends React.Component {
     render() {
         return (
             <form>
-                <input onChange={this.handleChange} value={this.state.value}/>
+                <input type="text" onKeyPress={this.handleKeyPress} onChange={this.handleChange} value={this.state.value}/>
                 <button type="button" onClick={this.handleSubmit}>Add a stock</button>
             </form>
         );

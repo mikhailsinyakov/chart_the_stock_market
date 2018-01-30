@@ -1,9 +1,10 @@
 import ChartJS from 'chart.js';
 import moment from 'moment';
+import shuffle from 'shuffle-array';
 
 function DrawChart() {
     let stockChart = null;
-    const colors = ["rgb(0,0,0)", "rgb(255,255,255)", "rgb(255,0,0)", "rgb(0,255,0)",
+    const colors = ["rgb(0,0,0)", "rgb(255,0,0)", "rgb(0,255,0)",
         "rgb(0,0,255)", "rgb(255,255,0)", "rgb(0,255,255)", "rgb(255,0,255)",
         "rgb(192,192,192)", "rgb(128,128,128)", "rgb(128,0,0)", "rgb(128,128,0)",
         "rgb(0,128,0)", "rgb(128,0,128)", "rgb(0,128,128)", "rgb(0,0,128)"
@@ -37,6 +38,8 @@ function DrawChart() {
         }
         
         const index = stockChart.data.datasets.length;
+        
+        shuffle(colors);
         const newDataset = {
             data: stockData.data.map(val => +val.closePrice).reverse(),
             label: stockData.symbol,
@@ -62,6 +65,8 @@ function DrawChart() {
             };
         });
         const labels = stocksData[0].data.map(val => moment(val.date).format('D.M.YYYY')).reverse();
+        
+        shuffle(colors);
         const datasets = stocksData.map((stockData, index) => {
             return {
                 data: stockData.data.map(val => +val.closePrice).reverse(),

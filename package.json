@@ -32,6 +32,8 @@
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "request": "^2.83.0",
+    "shuffle-array": "^1.0.1",
+    "socket.io": "^2.0.4",
     "webpack": "^3.10.0"
   }
 }
