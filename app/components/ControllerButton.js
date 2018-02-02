@@ -10,14 +10,23 @@ function ControllerButton(props) {
     
     if (props.currPeriod == props.newPeriod) {
         return (
-            <button><b>{periodToString(props.newPeriod)}</b></button>
+            <li className="page-item active">
+                <a className="page-link" href="#" onClick={e => e.preventDefault}>
+                    {periodToString(props.newPeriod)}
+                </a>
+            </li>
         );
     }
     
     return (
-        <button onClick={() => props.changePeriod(props.newPeriod)}>
-            {periodToString(props.newPeriod)}
-        </button>
+        <li className="page-item">
+            <a className="page-link" href="#" onClick={e => {
+                        e.preventDefault();
+                        props.changePeriod(props.newPeriod)}
+                    }>
+                {periodToString(props.newPeriod)}
+            </a>
+        </li>
     );
 }
 

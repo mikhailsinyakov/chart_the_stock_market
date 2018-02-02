@@ -7,8 +7,8 @@ function Chart(props) {
     return (
         <div className="chart">
             <Controllers period={props.period} 
-                         changePeriod={props.changePeriod} />
-            <canvas id="stockChart" width="1000" height="400"></canvas>
+                         changePeriod={props.changePeriod}/>
+            <canvas id="stockChart" width="1000" height="300"></canvas>
         </div>
     );
 }

@@ -6,7 +6,8 @@ You can remove stocks
 You can see changes in real-time when any other user adds or removes a stock
 
 
-Created by using [Clementine.js](https://github.com/johnstonbl01/clementinejs-fcc.git) boilerplate 
+Created by using [Clementine.js](https://github.com/johnstonbl01/clementinejs-fcc.git) boilerplate,
+[Alpha Vantage API](https://www.alphavantage.co)
 
 ## Clementine License
 

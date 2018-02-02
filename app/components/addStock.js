@@ -30,11 +30,25 @@ class AddStock extends React.Component {
     }
     
     render() {
+        const style = {fontSize: "12px", marginTop: "10px"};
+        
+        const error = this.props.addingError 
+                        ? <p className="text-warning" style={style}>{this.props.addingError}</p>
+                        : null;
+        
         return (
-            <form>
-                <input type="text" onKeyPress={this.handleKeyPress} onChange={this.handleChange} value={this.state.value}/>
-                <button type="button" onClick={this.handleSubmit}>Add a stock</button>
-            </form>
+            <div className="stock-item bg-secondary">
+                <form>
+                    <input type="text" onKeyPress={this.handleKeyPress} 
+                            onChange={this.handleChange} value={this.state.value}
+                            className="form-control form-control-sm"/>
+                    <button type="button" onClick={this.handleSubmit}
+                            className="btn btn-success btn-sm">
+                        Add
+                    </button>
+                </form>
+                {error}
+            </div>
         );
     }
 }

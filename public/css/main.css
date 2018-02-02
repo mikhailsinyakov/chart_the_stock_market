@@ -22,3 +22,53 @@ body {
 	margin: 0;
 	padding: 0;
 }
+
+#app {
+  padding: 0 10%;
+}
+
+.chart {
+  margin-bottom: 25px;
+}
+
+.controllers {
+  transform: translate(45px, 45px);
+}
+
+.stocks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.stock-item {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin-right: 20px;
+  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 5px;
+  background: green;
+}
+
+.stock-item h4 {
+  color: #e9ecef;
+}
+
+.stock-item i {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 20px;
+  color: #e9ecef;
+}
+
+.stock-item input {
+  display: inline;
+  width: 65%;
+  margin-right: 7%;
+  transform: translateY(2px);
+}

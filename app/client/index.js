@@ -4,10 +4,8 @@ import io from 'socket.io-client';
 import StocksController from '../controllers/stocksController.client.js';
 import getStockData from '../common/getStockData.client.js';
 import DrawChart from '../common/drawChart.js';
-import Header from '../components/Header.js';
 import Chart from '../components/Chart.js';
 import Stocks from '../components/Stocks.js';
-import Footer from '../components/Footer.js';
 
 const stocksController = new StocksController();
 const drawChart = new DrawChart();
@@ -21,7 +19,8 @@ class App extends React.Component {
         super(props);
         this.state = {
             stocks: [],
-            period: 90
+            period: 90,
+            addingError: null
         };
         
         this.stocksData = [];
@@ -42,15 +41,17 @@ class App extends React.Component {
     }
     
     addStock(symbol) {
-        const isAlreadyExist = !!this.state.stocks.filter(val => val == symbol).length;
-        const greaterThanMaxLength = this.state.stocks.length > 14;
-        if (isAlreadyExist || greaterThanMaxLength) return;
+        const isAlreadyExist = !!this.state.stocks.filter(val => val.symbol == symbol).length;
+        const greaterThanMaxLength = this.state.stocks.length > 9;
+        if (isAlreadyExist) return this.setState({addingError: 'This company has already been added'});
+        if (greaterThanMaxLength) return this.setState({addingError: 'Exceeded the maximum number of companies'});
         getStockData(symbol).then(stockData => {
+                                this.setState({addingError: null});
                                 this.stockDataBuffer = stockData;
                                 stocksController.addStock(symbol);
                             })
                             .then(() => socket.emit('changedStocks', true))
-                            .catch(err => console.log(err));
+                            .catch(err => this.setState({addingError: `This stock code ${err}`}));
     }
     
     removeStock(symbol) {
@@ -65,7 +66,7 @@ class App extends React.Component {
     isStocksUpdated(prevStocks, currStocks) {
         if (prevStocks.length != currStocks.length) return true;
         const matchedStocks = prevStocks.filter(val1 => {
-                return currStocks.filter(val2 => val1 == val2).length;
+                return currStocks.filter(val2 => val1.symbol == val2.symbol).length;
             });
         if (matchedStocks.length != prevStocks.length) return true;
         return false;
@@ -97,12 +98,14 @@ class App extends React.Component {
     
     getStocksChanges(prevStocks, currStocks) {
         let added = currStocks.filter(val1 => {
-                return !prevStocks.filter(val2 => val1 == val2).length;
-            });
+                return !prevStocks.filter(val2 => val1.symbol == val2.symbol).length;
+            })
+                               .map(val => val.symbol);
         
         let removed = prevStocks.filter(val1 => {
-                return !currStocks.filter(val2 => val1 == val2).length;
-            });
+                return !currStocks.filter(val2 => val1.symbol == val2.symbol).length;
+            })
+                               .map(val => val.symbol);
         
         return {added, removed};
         
@@ -131,13 +134,11 @@ class App extends React.Component {
     
     render() {
         return (
-            <div>
-                <Header />
+            <div className="jumbotron">
                 <Chart stocks={this.state.stocks} period={this.state.period} 
                         changePeriod={this.changePeriod}/>
                 <Stocks stocks={this.state.stocks} addStock={this.addStock}
-                        removeStock={this.removeStock}/>
-                <Footer />
+                        removeStock={this.removeStock} addingError={this.state.addingError}/>
             </div>
         );
     }

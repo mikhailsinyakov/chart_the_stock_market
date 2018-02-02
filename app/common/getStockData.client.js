@@ -6,7 +6,7 @@ function getStockData(symbol) {
         ajaxFunctions.ready(ajaxFunctions.ajaxRequest("GET", url, (status, response) => {
             let error;
             if (status != 200) error = `Error ${status}`;
-            if (!JSON.parse(response).length) error = 'Not found';
+            if (!JSON.parse(response).length) error = 'not found';
             if (error) return reject(error);
             resolve({
                 symbol,

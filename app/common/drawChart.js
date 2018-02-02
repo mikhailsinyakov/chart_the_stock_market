@@ -14,12 +14,51 @@ function DrawChart() {
         const ctx = document.querySelector("#stockChart").getContext("2d");
         
         const options = {
+            title: {
+                display: true,
+                position: "top",
+                text: "STOCKS",
+                fontSize: 15
+            },
             legend: {
                 display: true,
                 position: "top",
                 labels: {
                     boxWidth: 40,
                     fontColor: "black"
+                }
+            },
+            tooltips: {
+                mode: "index",
+                intersect: false,
+                position: "nearest",
+                callbacks: {
+                    title: (tooltipItems, data) => {
+                        return moment(tooltipItems[0].xLabel).format('D.M.YYYY');
+                    }
+                }
+            },
+            hover: {
+                mode: "index",
+                intersect: false
+            },
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time: {
+                        displayFormats: {
+                            day: 'D.M.YYYY'
+                        }
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 10
+                    }
+                }]
+            },
+            elements: {
+                point: {
+                    radius: 0
                 }
             }
         };
@@ -33,7 +72,7 @@ function DrawChart() {
         };
         
         if (!stockChart.data.datasets.length) {
-            const labels = stockData.data.map(val => moment(val.date).format('D.M.YYYY')).reverse();
+            const labels = stockData.data.map(val => val.date)/*moment(val.date).format('D.M.YYYY'))*/.reverse();
             stockChart.data.labels = labels;
         }
         
@@ -64,7 +103,7 @@ function DrawChart() {
                 data: stockData.data.filter((val, i) => i < period)
             };
         });
-        const labels = stocksData[0].data.map(val => moment(val.date).format('D.M.YYYY')).reverse();
+        const labels = stocksData[0].data.map(val => val.date)/*moment(val.date).format('D.M.YYYY'))*/.reverse();
         
         shuffle(colors);
         const datasets = stocksData.map((stockData, index) => {

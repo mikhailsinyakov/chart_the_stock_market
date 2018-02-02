@@ -1,6 +1,8 @@
 "use strict";
 
+const companyList = require('../data/companylist.js');
 const Stocks = require('../models/stocks.js');
+
 
 function StocksHandler() {
     
@@ -15,7 +17,17 @@ function StocksHandler() {
     
     this.addStock = (req, res) => {
         const symbol = req.params.symbol;
-        const newStock = new Stocks({name: symbol});
+        let stock = companyList.filter(val => val.Symbol == symbol)[0];
+        if (!stock) stock = {
+            symbol,
+            name: '',
+            sector: ''
+        };
+        const newStock = new Stocks({
+            symbol,
+            name: stock.Name,
+            sector: stock.Sector
+        });
         newStock.save((err, newStock) => {
             if (err) return res.sendStatus(500);
             res.sendStatus(200);
@@ -25,7 +37,7 @@ function StocksHandler() {
     
     this.removeStock = (req, res) => {
         const symbol = req.params.symbol;
-        Stocks.remove({name: symbol}, (err, stock) => {
+        Stocks.remove({symbol}, (err, stock) => {
             if (err) return res.sendStatus(500);
             res.sendStatus(200);
         });
