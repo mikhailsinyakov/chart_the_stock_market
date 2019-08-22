@@ -10,13 +10,14 @@
   "homepage": "https://chart-the-stock-market1.herokuapp.com/",
   "keywords": [
     "chart",
-    "stocks",
+    "stock",
     "market"
   ],
   "scripts": {
     "start": "node server.js",
     "build": "webpack"
   },
+  "heroku-run-build-script": true,
   "author": "Mikhail Sinyakov",
   "license": "MIT",
   "dependencies": {
