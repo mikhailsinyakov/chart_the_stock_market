@@ -10,14 +10,14 @@ function DrawChart() {
         "rgb(0,128,0)", "rgb(128,0,128)", "rgb(0,128,128)", "rgb(0,0,128)"
     ];
     
-    this.initDrawing = () => {
+    this.initDrawing = lang => {
         const ctx = document.querySelector("#stockChart").getContext("2d");
         
         const options = {
             title: {
                 display: true,
                 position: "top",
-                text: "STOCKS",
+                text: lang === 'ru' ? 'АКЦИИ' : "STOCKS",
                 fontSize: 15
             },
             legend: {
@@ -72,7 +72,7 @@ function DrawChart() {
         };
         
         if (!stockChart.data.datasets.length) {
-            const labels = stockData.data.map(val => val.date)/*moment(val.date).format('D.M.YYYY'))*/.reverse();
+            const labels = stockData.data.map(val => val.date).reverse();
             stockChart.data.labels = labels;
         }
         
@@ -103,7 +103,7 @@ function DrawChart() {
                 data: stockData.data.filter((val, i) => i < period)
             };
         });
-        const labels = stocksData[0].data.map(val => val.date)/*moment(val.date).format('D.M.YYYY'))*/.reverse();
+        const labels = stocksData[0].data.map(val => val.date).reverse();
         
         shuffle(colors);
         const datasets = stocksData.map((stockData, index) => {

@@ -7,10 +7,10 @@
     "type": "git",
     "url": "https://github.com/mikhailsinyakov/chart_the_stock_market"
   },
-  "homepage": "",
+  "homepage": "https://chart-the-stock-market1.herokuapp.com/",
   "keywords": [
     "chart",
-    "stock",
+    "stocks",
     "market"
   ],
   "scripts": {

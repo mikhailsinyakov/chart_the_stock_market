@@ -17,7 +17,8 @@ function Stocks(props) {
     return (
         <div className="stocks">
             {stocksList}
-            <AddStock addStock={props.addStock} addingError={props.addingError}/>
+            <AddStock addStock={props.addStock} addingError={props.addingError} 
+                lang={props.lang}/>
         </div>
     );
 }

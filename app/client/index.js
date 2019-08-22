@@ -25,6 +25,7 @@ class App extends React.Component {
         
         this.stocksData = [];
         this.stockDataBuffer = {};
+        this.lang = 'en';
         
         this.updateStocks = this.updateStocks.bind(this);
         this.updateStocksDataAndChart = this.updateStocksDataAndChart.bind(this);
@@ -41,17 +42,23 @@ class App extends React.Component {
     }
     
     addStock(symbol) {
+        const alreadyAddedMsg = this.lang === 'ru' ? 
+            'Эта компания уже добавлена' : 
+            'This company has already been added';
+        const numberExceededMsg = this.lang === 'ru' ?
+            'Превышение максимальное количество компаний' :
+            'Exceeded the maximum number of companies';
+        const anotherErrMsg = this.lang === 'ru' ? 'Ошибка: ' : 'Error: ';
         const isAlreadyExist = !!this.state.stocks.filter(val => val.symbol == symbol).length;
         const greaterThanMaxLength = this.state.stocks.length > 9;
-        if (isAlreadyExist) return this.setState({addingError: 'This company has already been added'});
-        if (greaterThanMaxLength) return this.setState({addingError: 'Exceeded the maximum number of companies'});
+        if (isAlreadyExist) return this.setState({addingError: alreadyAddedMsg});
+        if (greaterThanMaxLength) return this.setState({addingError: numberExceededMsg});
         getStockData(symbol).then(stockData => {
-                                this.setState({addingError: null});
-                                this.stockDataBuffer = stockData;
-                                stocksController.addStock(symbol);
-                            })
-                            .then(() => socket.emit('changedStocks', true))
-                            .catch(err => this.setState({addingError: `This stock code ${err}`}));
+            this.setState({addingError: null});
+            this.stockDataBuffer = stockData;
+            stocksController.addStock(symbol);
+        }).then(() => socket.emit('changedStocks', true))
+        .catch(err => this.setState({addingError: anotherErrMsg + err}));
     }
     
     removeStock(symbol) {
@@ -112,10 +119,14 @@ class App extends React.Component {
     }
     
     componentDidMount() {
+        if (location.pathname === '/ru') {
+            this.lang = 'ru';
+            document.title = 'Графики акций';
+        }
         socket = io.connect();
         socket.on('updateStocks', this.updateStocks);
         this.updateStocks();
-        drawChart.initDrawing();
+        drawChart.initDrawing(this.lang);
     }
     
     componentDidUpdate(prevProps, prevState) {
@@ -134,12 +145,12 @@ class App extends React.Component {
     
     render() {
         return (
-            <div className="jumbotron">
+            <main className="jumbotron">
                 <Chart stocks={this.state.stocks} period={this.state.period} 
-                        changePeriod={this.changePeriod}/>
-                <Stocks stocks={this.state.stocks} addStock={this.addStock}
+                        changePeriod={this.changePeriod} lang={this.lang}/>
+                <Stocks stocks={this.state.stocks} addStock={this.addStock} lang={this.lang}
                         removeStock={this.removeStock} addingError={this.state.addingError}/>
-            </div>
+            </main>
         );
     }
 }

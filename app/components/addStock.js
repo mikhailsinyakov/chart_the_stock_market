@@ -41,10 +41,11 @@ class AddStock extends React.Component {
                 <form>
                     <input type="text" onKeyPress={this.handleKeyPress} 
                             onChange={this.handleChange} value={this.state.value}
+                            style={{width: this.props.lang === 'ru' ? '40%' : '65%'}}
                             className="form-control form-control-sm"/>
                     <button type="button" onClick={this.handleSubmit}
                             className="btn btn-success btn-sm">
-                        Add
+                        {this.props.lang === 'ru' ? 'Добавить' : 'Add'}
                     </button>
                 </form>
                 {error}
